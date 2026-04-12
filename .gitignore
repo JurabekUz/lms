@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.idea/
+.DS_Store
+*.pyc
+*.pyo
+*.pyd
+.env
+services/*/.env
+services/*/.aerich
+
+services/academic_service/
+services/identity_service/

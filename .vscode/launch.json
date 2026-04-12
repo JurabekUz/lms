@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Identity Service",
+      "type": "python",
+      "request": "launch",
+      "module": "uvicorn",
+      "cwd": "${workspaceFolder}/services/identity_service",
+      "args": ["app.main:app", "--reload", "--host", "0.0.0.0", "--port", "8001"],
+      "envFile": "${workspaceFolder}/services/identity_service/.env"
+    },
+    {
+      "name": "Academic Service",
+      "type": "python",
+      "request": "launch",
+      "module": "uvicorn",
+      "cwd": "${workspaceFolder}/services/academic_service",
+      "args": ["app.main:app", "--reload", "--host", "0.0.0.0", "--port", "8002"],
+      "envFile": "${workspaceFolder}/services/academic_service/.env"
+    }
+  ]
+}
