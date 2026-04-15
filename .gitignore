@@ -11,5 +11,3 @@ __pycache__/
 .env
 services/*/.env
 services/*/.aerich
-
-services/academic_service/
