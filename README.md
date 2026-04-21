@@ -10,6 +10,7 @@ Monorepo for a startup-stage LMS built with FastAPI, Tortoise ORM, PostgreSQL, a
 ## Current status
 
 - PRD and engineering rules are documented in `docs/`
+- Microservices learning roadmap is in `docs/LEARNING_PLAN.md`
 - monorepo skeleton is created
 - identity and academic services are being built as separate FastAPI apps inside the monorepo
 

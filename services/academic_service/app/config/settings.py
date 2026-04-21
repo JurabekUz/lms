@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     api_prefix: str = "/api"
     database_url: str = "postgres://postgres:postgres@localhost:5432/lms_academic"
     identity_service_base_url: str = "http://localhost:8001"
+    jwt_secret_key: str = "change-me"
+    jwt_algorithm: str = "HS256"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

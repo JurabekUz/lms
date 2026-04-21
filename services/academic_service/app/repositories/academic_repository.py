@@ -7,11 +7,11 @@ from app.models import AcademicYear, ClassStudent, SchoolClass, Semester, Subjec
 
 
 class AcademicYearRepository:
-    async def create(self, **kwargs) -> AcademicYear:
-        return await AcademicYear.create(**kwargs)
+    async def create(self, *, school_id: UUID, **kwargs) -> AcademicYear:
+        return await AcademicYear.create(school_id=school_id, **kwargs)
 
-    async def list_all(self) -> list[AcademicYear]:
-        return await AcademicYear.all().order_by("-start_date")
+    async def list_all(self, *, school_id: UUID) -> list[AcademicYear]:
+        return await AcademicYear.filter(school_id=school_id).order_by("-start_date")
 
     async def get_by_id(self, academic_year_id: UUID) -> AcademicYear | None:
         return await AcademicYear.get_or_none(id=academic_year_id)
@@ -21,8 +21,9 @@ class SemesterRepository:
     async def create(self, **kwargs) -> Semester:
         return await Semester.create(**kwargs)
 
-    async def list_all(self, academic_year_id: UUID | None = None) -> list[Semester]:
+    async def list_all(self, *, school_id: UUID, academic_year_id: UUID | None = None) -> list[Semester]:
         query = Semester.all().select_related("academic_year").order_by("start_date")
+        query = query.filter(academic_year__school_id=school_id)
         if academic_year_id is not None:
             query = query.filter(academic_year_id=academic_year_id)
         return await query
@@ -39,25 +40,28 @@ class SemesterRepository:
 
 
 class SubjectRepository:
-    async def create(self, **kwargs) -> Subject:
-        return await Subject.create(**kwargs)
+    async def create(self, *, school_id: UUID, **kwargs) -> Subject:
+        return await Subject.create(school_id=school_id, **kwargs)
 
-    async def list_all(self) -> list[Subject]:
-        return await Subject.all().order_by("name", "type")
+    async def list_all(self, *, school_id: UUID) -> list[Subject]:
+        return await Subject.filter(school_id=school_id).order_by("name", "type")
 
     async def get_by_id(self, subject_id: UUID) -> Subject | None:
         return await Subject.get_or_none(id=subject_id)
 
 
 class SchoolClassRepository:
-    async def create(self, **kwargs) -> SchoolClass:
-        return await SchoolClass.create(**kwargs)
+    async def create(self, *, school_id: UUID, **kwargs) -> SchoolClass:
+        return await SchoolClass.create(school_id=school_id, **kwargs)
 
-    async def list_all(self) -> list[SchoolClass]:
-        return await SchoolClass.all().order_by("grade_level", "name")
+    async def list_all(self, *, school_id: UUID) -> list[SchoolClass]:
+        return await SchoolClass.filter(school_id=school_id).order_by("grade_level", "name")
 
-    async def get_by_id(self, class_id: UUID) -> SchoolClass | None:
-        return await SchoolClass.get_or_none(id=class_id)
+    async def get_by_id(self, class_id: UUID, *, school_id: UUID | None = None) -> SchoolClass | None:
+        query = SchoolClass.get_or_none(id=class_id)
+        if school_id is not None:
+            query = query.filter(school_id=school_id)
+        return await query
 
 
 class ClassStudentRepository:

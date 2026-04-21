@@ -2,7 +2,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
 
-from app.api.dependencies import get_academic_service
+from app.api.dependencies import AuthContext, get_academic_service, get_auth_context
 from app.schemas import (
     AcademicYearCreateRequest,
     AcademicYearResponse,
@@ -36,61 +36,69 @@ async def readiness() -> HealthResponse:
 @academic_router.post("/academic-years", response_model=AcademicYearResponse, status_code=status.HTTP_201_CREATED)
 async def create_academic_year(
     payload: AcademicYearCreateRequest,
+    auth: AuthContext = Depends(get_auth_context),
     academic_service: AcademicService = Depends(get_academic_service),
 ) -> AcademicYearResponse:
-    return await academic_service.create_academic_year(payload)
+    return await academic_service.create_academic_year(payload, school_id=auth.school_id)
 
 
 @academic_router.get("/academic-years", response_model=list[AcademicYearResponse], status_code=status.HTTP_200_OK)
 async def list_academic_years(
+    auth: AuthContext = Depends(get_auth_context),
     academic_service: AcademicService = Depends(get_academic_service),
 ) -> list[AcademicYearResponse]:
-    return await academic_service.list_academic_years()
+    return await academic_service.list_academic_years(school_id=auth.school_id)
 
 
 @academic_router.post("/semesters", response_model=SemesterResponse, status_code=status.HTTP_201_CREATED)
 async def create_semester(
     payload: SemesterCreateRequest,
+    auth: AuthContext = Depends(get_auth_context),
     academic_service: AcademicService = Depends(get_academic_service),
 ) -> SemesterResponse:
-    return await academic_service.create_semester(payload)
+    return await academic_service.create_semester(payload, school_id=auth.school_id)
 
 
 @academic_router.get("/semesters", response_model=list[SemesterResponse], status_code=status.HTTP_200_OK)
 async def list_semesters(
+    auth: AuthContext = Depends(get_auth_context),
     academic_service: AcademicService = Depends(get_academic_service),
 ) -> list[SemesterResponse]:
-    return await academic_service.list_semesters()
+    return await academic_service.list_semesters(school_id=auth.school_id)
 
 
 @academic_router.post("/subjects", response_model=SubjectResponse, status_code=status.HTTP_201_CREATED)
 async def create_subject(
     payload: SubjectCreateRequest,
+    auth: AuthContext = Depends(get_auth_context),
     academic_service: AcademicService = Depends(get_academic_service),
 ) -> SubjectResponse:
-    return await academic_service.create_subject(payload)
+    return await academic_service.create_subject(payload, school_id=auth.school_id)
 
 
 @academic_router.get("/subjects", response_model=list[SubjectResponse], status_code=status.HTTP_200_OK)
 async def list_subjects(
+    auth: AuthContext = Depends(get_auth_context),
     academic_service: AcademicService = Depends(get_academic_service),
 ) -> list[SubjectResponse]:
-    return await academic_service.list_subjects()
+    return await academic_service.list_subjects(school_id=auth.school_id)
 
 
 @academic_router.post("/classes", response_model=SchoolClassResponse, status_code=status.HTTP_201_CREATED)
 async def create_class(
     payload: SchoolClassCreateRequest,
+    auth: AuthContext = Depends(get_auth_context),
     academic_service: AcademicService = Depends(get_academic_service),
 ) -> SchoolClassResponse:
-    return await academic_service.create_class(payload)
+    return await academic_service.create_class(payload, school_id=auth.school_id)
 
 
 @academic_router.get("/classes", response_model=list[SchoolClassResponse], status_code=status.HTTP_200_OK)
 async def list_classes(
+    auth: AuthContext = Depends(get_auth_context),
     academic_service: AcademicService = Depends(get_academic_service),
 ) -> list[SchoolClassResponse]:
-    return await academic_service.list_classes()
+    return await academic_service.list_classes(school_id=auth.school_id)
 
 
 @academic_router.post(
@@ -101,9 +109,10 @@ async def list_classes(
 async def assign_student_to_class(
     class_id: UUID,
     payload: ClassStudentAssignRequest,
+    auth: AuthContext = Depends(get_auth_context),
     academic_service: AcademicService = Depends(get_academic_service),
 ) -> ClassStudentResponse:
-    return await academic_service.assign_student_to_class(class_id, payload)
+    return await academic_service.assign_student_to_class(class_id, payload, school_id=auth.school_id)
 
 
 @academic_router.get(
@@ -113,9 +122,10 @@ async def assign_student_to_class(
 )
 async def list_class_students(
     class_id: UUID,
+    auth: AuthContext = Depends(get_auth_context),
     academic_service: AcademicService = Depends(get_academic_service),
 ) -> list[ClassStudentResponse]:
-    return await academic_service.list_class_students(class_id)
+    return await academic_service.list_class_students(class_id, school_id=auth.school_id)
 
 
 router.include_router(system_router)
