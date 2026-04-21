@@ -2,7 +2,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
 
-from app.api.dependencies import get_user_service
+from app.api.dependencies import get_current_user, get_user_service
 from app.schemas.user import UserCreateRequest, UserListResponse, UserResponse
 from app.services.user_service import UserService
 
@@ -26,9 +26,18 @@ async def list_users(
     return await user_service.list_users(limit=limit, offset=offset)
 
 
+@router.get("/me")
+async def me(
+    user=Depends(get_current_user),
+    user_service: UserService = Depends(get_user_service),
+):
+    return await user_service.get_user(user.id)
+
+
 @router.get("/{user_id}", response_model=UserResponse, status_code=status.HTTP_200_OK)
 async def get_user(
     user_id: UUID,
     user_service: UserService = Depends(get_user_service),
 ) -> UserResponse:
     return await user_service.get_user(user_id)
+    

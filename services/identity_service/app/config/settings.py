@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     app_debug: bool = True
     app_host: str = "0.0.0.0"
     app_port: int = 8001
-    api_prefix: str = "/api/v1"
+    api_prefix: str = "/api"
     database_url: str = "postgres://postgres:postgres@localhost:5432/lms_identity"
     redis_url: str = "redis://localhost:6379/0"
     admin_path: str = "/admin"
@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     admin_login_logo_url: str | None = None
     jwt_secret_key: str = "change-me"
     jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30
+    access_token_expire_minutes: int = 300
     refresh_token_expire_days: int = 7
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")

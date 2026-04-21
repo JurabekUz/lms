@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from fastapi import HTTPException
+
 from app.exceptions import ConflictError, NotFoundError
 from app.models.user import Role, User
 from app.repositories.role_repository import RoleRepository
@@ -11,6 +13,7 @@ from app.schemas.user import (
     UserResponse,
 )
 from app.security.password import PasswordService
+from app.models.school import School
 
 
 class UserService:
@@ -30,6 +33,11 @@ class UserService:
         )
         if existing_user is not None:
             raise ConflictError("Username or email already exists")
+        
+        if payload.school:
+            exists = await School.filter(id=payload.school).exists()
+            if not exists:
+                raise ConflictError("School not found")
 
         roles = await self._resolve_roles(payload.roles)
         user = await self.user_repository.create(
@@ -38,6 +46,7 @@ class UserService:
             password_hash=self.password_service.hash(payload.password),
             is_active=payload.is_active,
             roles=roles,
+            school_id=payload.school,
             first_name=payload.first_name,
             last_name=payload.last_name,
             father_name=payload.father_name,
@@ -80,6 +89,7 @@ class UserService:
             username=user.username,
             email=user.email,
             is_active=user.is_active,
+            school_id=user.school_id,
             roles=[role.name for role in user.roles],
             profile=UserProfileResponse(
                 first_name=profile.first_name if profile else "",

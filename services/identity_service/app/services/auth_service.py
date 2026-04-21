@@ -20,7 +20,7 @@ class AuthService:
         user = await self.user_repository.get_by_username(payload.username)
         if user is None or not user.is_active:
             raise AuthenticationError("Invalid username or password")
-
+        
         if not self.password_service.verify(payload.password, user.password_hash):
             raise AuthenticationError("Invalid username or password")
 
@@ -29,6 +29,7 @@ class AuthService:
             subject=str(user.id),
             username=user.username,
             roles=role_names,
+            school_id=str(user.school_id) if user.school_id else "",
         )
         refresh_token = self.token_service.create_refresh_token(subject=str(user.id))
         return TokenResponse(

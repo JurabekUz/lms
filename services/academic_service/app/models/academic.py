@@ -17,6 +17,7 @@ class SubjectType(StrEnum):
 
 class AcademicYear(Model, TimestampMixin):
     id = fields.UUIDField(pk=True)
+    school_id = fields.UUIDField()
     name = fields.CharField(max_length=50, unique=True)
     start_date = fields.DateField()
     end_date = fields.DateField()
@@ -43,6 +44,7 @@ class Semester(Model, TimestampMixin):
 
 class Subject(Model, TimestampMixin):
     id = fields.UUIDField(pk=True)
+    school_id = fields.UUIDField()
     name = fields.CharField(max_length=100)
     type = fields.CharEnumField(SubjectType, max_length=32)
 
@@ -53,6 +55,7 @@ class Subject(Model, TimestampMixin):
 
 class SchoolClass(Model, TimestampMixin):
     id = fields.UUIDField(pk=True)
+    school_id = fields.UUIDField()
     name = fields.CharField(max_length=50)
     grade_level = fields.IntField()
     room_number = fields.CharField(max_length=20, null=True)

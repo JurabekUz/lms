@@ -29,6 +29,12 @@ class User(Model, TimestampMixin):
         related_name="users",
         through="user_roles",
     )
+    school = fields.ForeignKeyField(
+        "models.School",
+        related_name="users",
+        on_delete=fields.CASCADE,
+        null=True,
+    )
 
     class Meta:
         table = "users"

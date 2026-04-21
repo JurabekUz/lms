@@ -19,6 +19,7 @@ email-validator = "^2.2.0"
 httpx = "^0.28.1"
 fastapi-admin = "^1.0.4"
 redis = "^5.2.1"
+bcrypt = "4.3.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.11.7"
@@ -26,7 +27,7 @@ pytest = "^8.3.5"
 pytest-asyncio = "^0.26.0"
 
 [tool.aerich]
-tortoise_orm = "app.infrastructure.db.init.TORTOISE_ORM"
+tortoise_orm = "app.db.init.TORTOISE_ORM"
 location = "./migrations"
 src_folder = "./."
 

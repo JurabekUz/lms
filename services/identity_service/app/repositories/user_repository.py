@@ -48,6 +48,7 @@ class UserRepository:
         password_hash: str,
         is_active: bool,
         roles: list[Role],
+        school_id: UUID | None,
         first_name: str,
         last_name: str,
         father_name: str | None,
@@ -60,6 +61,7 @@ class UserRepository:
             email=email,
             password_hash=password_hash,
             is_active=is_active,
+            school_id=school_id,
         )
         if roles:
             await user.roles.add(*roles)

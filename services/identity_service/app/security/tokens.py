@@ -9,11 +9,12 @@ class TokenService:
     def __init__(self) -> None:
         self.settings = get_settings()
 
-    def create_access_token(self, *, subject: str, username: str, roles: list[str]) -> str:
+    def create_access_token(self, *, subject: str, username: str, roles: list[str], school_id: str) -> str:
         expires_at = datetime.now(UTC) + timedelta(minutes=self.settings.access_token_expire_minutes)
         payload = {
             "sub": subject,
             "username": username,
+            "school_id": school_id,
             "roles": roles,
             "type": "access",
             "exp": expires_at,

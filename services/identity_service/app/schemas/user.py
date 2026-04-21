@@ -19,6 +19,7 @@ class UserCreateRequest(UserProfileBase):
     password: str = Field(min_length=8, max_length=128)
     roles: list[str] = Field(default_factory=list)
     is_active: bool = True
+    school: UUID | None = None
 
 
 class UserProfileResponse(UserProfileBase):
@@ -31,6 +32,7 @@ class UserResponse(BaseModel):
     email: EmailStr
     is_active: bool
     roles: list[str]
+    school_id: UUID | None
     profile: UserProfileResponse
     created_at: datetime
     updated_at: datetime
