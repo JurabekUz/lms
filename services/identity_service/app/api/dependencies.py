@@ -1,7 +1,7 @@
 from uuid import UUID
 
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 
 from app.config.settings import get_settings
@@ -14,6 +14,7 @@ from app.services.auth_service import AuthService
 from app.services.user_service import UserService
 from app.repositories.school_repository import SchoolRepository
 from app.services.school_service import SchoolService
+from app.infra.event_publisher import EventPublisher, NoopEventPublisher
 
 _oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
@@ -53,8 +54,24 @@ async def get_current_user(token: str = Depends(_oauth2_scheme)) -> User:
     return user
 
 
-def get_user_service() -> UserService:
-    return UserService(user_repository=UserRepository(), role_repository=RoleRepository())
+def get_event_publisher(request: Request) -> EventPublisher:
+    # Publisher app lifespan paytida `app.state` ga bir marta qo'yiladi.
+    # Route/svc qatlamiga global object uzatmaslik uchun DI orqali shu yerdan olamiz.
+    # Agar RabbitMQ ulanmagan bo'lsa, Noop fallback servisni yiqitmaydi.
+    publisher = getattr(request.app.state, "event_publisher", None)
+    if publisher is None:
+        return NoopEventPublisher()
+    return publisher
+
+
+def get_user_service(request: Request) -> UserService:
+    # UserService event publish qilishi kerak, shuning uchun event_publisher dependency
+    # ham shu yerda injekt qilinadi (service layer Rabbit implementatsiyasiga bog'lanmaydi).
+    return UserService(
+        user_repository=UserRepository(),
+        role_repository=RoleRepository(),
+        event_publisher=get_event_publisher(request),
+    )
 
 
 def get_auth_service() -> AuthService:

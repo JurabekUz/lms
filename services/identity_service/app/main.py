@@ -15,6 +15,7 @@ from app.admin.setup import close_admin, configure_admin, mount_admin
 from app.api.routes import api_router
 from app.config.settings import get_settings
 from app.db.init import close_database, init_database
+from app.infra.event_publisher import NoopEventPublisher, RabbitMQEventPublisher
 from app.web.error_handlers import register_exception_handlers
 
 
@@ -31,7 +32,19 @@ async def lifespan(application: FastAPI):
     """
     await init_database()
     await configure_admin(application)
+    publisher = RabbitMQEventPublisher(
+        url=settings.rabbitmq_url,
+        exchange_name=settings.rabbitmq_exchange,
+    )
+    try:
+        await publisher.connect()
+        application.state.event_publisher = publisher
+    except Exception:
+        application.state.event_publisher = NoopEventPublisher()
     yield
+    app_publisher = getattr(application.state, "event_publisher", None)
+    if isinstance(app_publisher, RabbitMQEventPublisher):
+        await app_publisher.close()
     await close_admin(application)
     await close_database()
 

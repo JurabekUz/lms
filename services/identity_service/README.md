@@ -16,6 +16,7 @@ Run the service:
 
 ```bash
 poetry run uvicorn app.main:app --reload --host 0.0.0.0 --port 8001
+```
 
 Open the admin:
 
@@ -27,7 +28,6 @@ Initialize the first admin account:
 
 ```text
 http://localhost:8001/admin/init
-```
 ```
 
 Initialize Aerich:
@@ -43,3 +43,12 @@ Create a migration after model changes:
 poetry run aerich migrate
 poetry run aerich upgrade
 ```
+
+## Stage 2 Event Producer
+
+`POST /api/users` publishes `identity.user.created` to RabbitMQ exchange `lms.events`.
+
+Default env vars:
+
+- `RABBITMQ_URL=amqp://guest:guest@localhost:5672/`
+- `RABBITMQ_EXCHANGE=lms.events`
