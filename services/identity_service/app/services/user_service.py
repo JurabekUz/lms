@@ -6,6 +6,8 @@ from app.exceptions import ConflictError, NotFoundError
 from app.models.user import Role, User
 from app.repositories.role_repository import RoleRepository
 from app.repositories.user_repository import UserRepository
+from app.events.envelope import IdentityUserCreatedEventFactory
+from app.infra.event_publisher import EventPublisher
 from app.schemas.user import (
     UserCreateRequest,
     UserListResponse,
@@ -21,12 +23,14 @@ class UserService:
         self,
         user_repository: UserRepository,
         role_repository: RoleRepository,
+        event_publisher: EventPublisher,
     ) -> None:
         self.user_repository = user_repository
         self.role_repository = role_repository
         self.password_service = PasswordService()
+        self.event_publisher = event_publisher
 
-    async def create_user(self, payload: UserCreateRequest) -> UserResponse:
+    async def create_user(self, payload: UserCreateRequest, correlation_id: str) -> UserResponse:
         existing_user = await self.user_repository.get_by_username_or_email(
             username=payload.username,
             email=payload.email,
@@ -53,6 +57,14 @@ class UserService:
             bio=payload.bio,
             avatar_media_id=payload.avatar_media_id,
             metadata=payload.metadata,
+        )
+        await self.event_publisher.publish(
+            IdentityUserCreatedEventFactory.build(
+                correlation_id=correlation_id,
+                school_id=user.school_id,
+                user_id=user.id,
+                username=user.username,
+            )
         )
         return self._serialize_user(user)
 
