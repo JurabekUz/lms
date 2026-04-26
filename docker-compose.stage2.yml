@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: lms-rabbit
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  identity_db:
+    image: postgres:16
+    container_name: lms-identity-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: lms_identity
+    ports:
+      - "5432:5432"
+
+  audit_db:
+    image: postgres:16
+    container_name: lms-audit-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: lms_audit
+    ports:
+      - "5434:5432"
