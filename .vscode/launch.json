@@ -6,6 +6,7 @@
       "type": "python",
       "request": "launch",
       "module": "uvicorn",
+      "python": "${workspaceFolder}/services/identity_service/.venv/bin/python",
       "cwd": "${workspaceFolder}/services/identity_service",
       "args": ["app.main:app", "--reload", "--host", "0.0.0.0", "--port", "8001"],
       "envFile": "${workspaceFolder}/services/identity_service/.env"
@@ -15,9 +16,20 @@
       "type": "python",
       "request": "launch",
       "module": "uvicorn",
+      "python": "${workspaceFolder}/services/academic_service/.venv/bin/python",
       "cwd": "${workspaceFolder}/services/academic_service",
       "args": ["app.main:app", "--reload", "--host", "0.0.0.0", "--port", "8002"],
       "envFile": "${workspaceFolder}/services/academic_service/.env"
+    },
+    {
+      "name": "Audit Service",
+      "type": "python",
+      "request": "launch",
+      "module": "uvicorn",
+      "python": "${workspaceFolder}/services/audit_service/.venv/bin/python",
+      "cwd": "${workspaceFolder}/services/audit_service",
+      "args": ["app.main:app", "--reload", "--host", "0.0.0.0", "--port", "8003"],
+      "envFile": "${workspaceFolder}/services/audit_service/.env"
     }
   ]
 }

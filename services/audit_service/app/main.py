@@ -16,7 +16,10 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(application: FastAPI):
     await init_database()
-    consumer = RabbitConsumer(settings=settings, ingest_service=IngestService(audit_repository=AuditRepository()))
+    consumer = RabbitConsumer(
+        settings=settings, 
+        ingest_service=IngestService(audit_repository=AuditRepository())
+    )
     await consumer.start()
     application.state.consumer = consumer
     yield

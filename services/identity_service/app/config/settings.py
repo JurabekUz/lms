@@ -21,7 +21,6 @@ class Settings(BaseSettings):
     refresh_token_expire_days: int = 7
     rabbitmq_url: str = "amqp://guest:guest@localhost:5672/"
     rabbitmq_exchange: str = "lms.events"
-    # identity service nima uchun rabbit mq bilan boglanishi kerak
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

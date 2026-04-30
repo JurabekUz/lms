@@ -32,15 +32,19 @@ async def lifespan(application: FastAPI):
     """
     await init_database()
     await configure_admin(application)
-    publisher = RabbitMQEventPublisher(
-        url=settings.rabbitmq_url,
-        exchange_name=settings.rabbitmq_exchange,
-    )
-    try:
-        await publisher.connect()
-        application.state.event_publisher = publisher
-    except Exception:
-        application.state.event_publisher = NoopEventPublisher()
+    # rabbit mq ni ishlatamizmi yoki yoqmi deb tekshiramiz
+    publisher = None
+    if settings.rabbitmq_url:
+        publisher = RabbitMQEventPublisher(
+            url=settings.rabbitmq_url,
+            exchange_name=settings.rabbitmq_exchange,
+        )
+        try:
+            await publisher.connect()
+            application.state.event_publisher = publisher
+        except Exception as e:
+            print(f"FAILED TO CONNECT TO RABBITMQ: {e}")
+            application.state.event_publisher = NoopEventPublisher()
     yield
     app_publisher = getattr(application.state, "event_publisher", None)
     if isinstance(app_publisher, RabbitMQEventPublisher):
