@@ -7,6 +7,7 @@ This module wires together:
 - Public API routers mounted under `settings.api_prefix`
 """
 
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -16,6 +17,7 @@ from app.api.routes import api_router
 from app.config.settings import get_settings
 from app.db.init import close_database, init_database
 from app.infra.event_publisher import NoopEventPublisher, RabbitMQEventPublisher
+from app.infra.outbox_worker import OutboxWorker
 from app.web.error_handlers import register_exception_handlers
 
 
@@ -42,10 +44,23 @@ async def lifespan(application: FastAPI):
         try:
             await publisher.connect()
             application.state.event_publisher = publisher
+            
+            # Outbox workerni alohida task sifatida ishga tushiramiz.
+            # Bu worker bazadagi 'outbox_events'ni kuzatib MQ'ga chiqaradi.
+            worker = OutboxWorker(publisher=publisher)
+            application.state.outbox_worker = worker
+            application.state.outbox_worker_task = asyncio.create_task(worker.run())
+            
         except Exception as e:
             print(f"FAILED TO CONNECT TO RABBITMQ: {e}")
             application.state.event_publisher = NoopEventPublisher()
     yield
+    # Shutdown jarayoni
+    worker_task = getattr(application.state, "outbox_worker_task", None)
+    if worker_task:
+        # Workerga to'xtash haqida xabar beramiz va taskni kutamiz.
+        application.state.outbox_worker.stop()
+        await worker_task
     app_publisher = getattr(application.state, "event_publisher", None)
     if isinstance(app_publisher, RabbitMQEventPublisher):
         await app_publisher.close()

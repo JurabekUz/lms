@@ -64,13 +64,11 @@ def get_event_publisher(request: Request) -> EventPublisher:
     return publisher
 
 
-def get_user_service(request: Request) -> UserService:
-    # UserService event publish qilishi kerak, shuning uchun event_publisher dependency
-    # ham shu yerda injekt qilinadi (service layer Rabbit implementatsiyasiga bog'lanmaydi).
+def get_user_service() -> UserService:
+    # UserService endi event_publisherga muhtoj emas, chunki u Outbox Pattern ishlatadi.
     return UserService(
         user_repository=UserRepository(),
         role_repository=RoleRepository(),
-        event_publisher=get_event_publisher(request),
     )
 
 

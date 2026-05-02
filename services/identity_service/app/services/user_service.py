@@ -7,7 +7,8 @@ from app.models.user import Role, User
 from app.repositories.role_repository import RoleRepository
 from app.repositories.user_repository import UserRepository
 from app.events.envelope import IdentityUserCreatedEventFactory
-from app.infra.event_publisher import EventPublisher
+from app.models.outbox import OutboxEvent
+from tortoise.transactions import in_transaction
 from app.schemas.user import (
     UserCreateRequest,
     UserListResponse,
@@ -23,12 +24,10 @@ class UserService:
         self,
         user_repository: UserRepository,
         role_repository: RoleRepository,
-        event_publisher: EventPublisher,
     ) -> None:
         self.user_repository = user_repository
         self.role_repository = role_repository
         self.password_service = PasswordService()
-        self.event_publisher = event_publisher
 
     async def create_user(self, payload: UserCreateRequest, correlation_id: str) -> UserResponse:
         existing_user = await self.user_repository.get_by_username_or_email(
@@ -44,28 +43,38 @@ class UserService:
                 raise ConflictError("School not found")
 
         roles = await self._resolve_roles(payload.roles)
-        user = await self.user_repository.create(
-            username=payload.username,
-            email=payload.email,
-            password_hash=self.password_service.hash(payload.password),
-            is_active=payload.is_active,
-            roles=roles,
-            school_id=payload.school,
-            first_name=payload.first_name,
-            last_name=payload.last_name,
-            father_name=payload.father_name,
-            bio=payload.bio,
-            avatar_media_id=payload.avatar_media_id,
-            metadata=payload.metadata,
-        )
-        await self.event_publisher.publish(
-            IdentityUserCreatedEventFactory.build(
+
+        # Tranzaksiya boshlaymiz: User va OutboxEvent birga saqlanishi shart.
+        async with in_transaction():
+            user = await self.user_repository.create(
+                username=payload.username,
+                email=payload.email,
+                password_hash=self.password_service.hash(payload.password),
+                is_active=payload.is_active,
+                roles=roles,
+                school_id=payload.school,
+                first_name=payload.first_name,
+                last_name=payload.last_name,
+                father_name=payload.father_name,
+                bio=payload.bio,
+                avatar_media_id=payload.avatar_media_id,
+                metadata=payload.metadata,
+            )
+
+            # Eventni MQ'ga yubormaymiz, faqat bazaga (Outbox) yozib qo'yamiz.
+            # Agar RabbitMQ o'chgan bo'lsa ham, bu tranzaksiya muvaffaqiyatli tugaydi.
+            event = IdentityUserCreatedEventFactory.build(
                 correlation_id=correlation_id,
                 school_id=user.school_id,
                 user_id=user.id,
                 username=user.username,
             )
-        )
+            
+            await OutboxEvent.create(
+                event_type=event.event_type,
+                payload=event.model_dump(mode="json"),
+            )
+
         return self._serialize_user(user)
 
     async def get_user(self, user_id: UUID) -> UserResponse:
